@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: ms-transaccion
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db-transacciones:5432/db_transacciones}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  rabbitmq:
+    host: ${RABBITMQ_HOST:b-455e546c-be71-4fe2-ba0f-bd3112e6c220.mq.us-east-2.on.aws}
+    port: 5671
+    username: ${RABBITMQ_USERNAME:bantec}
+    password: ${RABBITMQ_PASSWORD:bantecpass}
+    virtual-host: /
+    ssl:
+      enabled: true
+      algorithm: TLSv1.2
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 4
+          initial-interval: 800ms
+          multiplier: 2.5
+          max-interval: 5000ms
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  feign:
+    cuentas-url: ${CUENTAS_URL:http://micro-cuentas:8081}
+    clientes-url: ${CLIENTES_URL:http://micro-clientes:8080}
+  switch:
+    network-url: ${APP_SWITCH_NETWORK_URL:http://34.16.106.7:8000}
+    apikey: ${APP_SWITCH_APIKEY:BANTEC_SECRET_KEY_2025}
+  security:
+    oauth:
+      token-url: https://auth-banca-dev.auth.us-east-2.amazoncognito.com
+      client-id: ${OAUTH_CLIENT_ID:7oj12jtu8d3keilv1e1gjkc8e4}
+      client-secret: ${OAUTH_CLIENT_SECRET:16o9bdppi2qku69vuk7qdcim4fqrkmkggder3iq47p9cs29tqqoq}
+      scope: https://switch-api.com/transfers.write
+  banco:
+    codigo: ${BANCO_CODIGO:BANTEC}
+  mtls:
+    enabled: ${MTLS_ENABLED:true}
+    keystore:
+      path: ${MTLS_KEYSTORE_PATH:classpath:certs/bantec-keystore.p12}
+      password: ${MTLS_KEYSTORE_PASSWORD:bantec123}
+    truststore:
+      path: ${MTLS_TRUSTSTORE_PATH:classpath:certs/bantec-truststore.p12}
+      password: ${MTLS_TRUSTSTORE_PASSWORD:bantec123}
+  rabbitmq:
+    queue: q.bank.BANTEC.in
+
+logging:
+  level:
+    com.arcbank.cbs.transaccion: DEBUG
+    org.springframework.web: INFO
+    com.arcbank.cbs.transaccion.client: DEBUG
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 60000

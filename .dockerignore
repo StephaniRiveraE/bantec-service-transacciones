@@ -1,0 +1,7 @@
+target
+.git
+.gitignore
+.gitattributes
+postgres_data*
+mongo_data*
+node_modules
