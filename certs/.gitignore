@@ -1,0 +1,11 @@
+# Certificados y llaves privadas
+*.p12
+*.key
+*.crt
+*.jks
+*.pem
+*.keystore
+*.truststore
+
+# No ignorar el directorio certs/* porque necesitamos que exista
+!certs/.gitkeep

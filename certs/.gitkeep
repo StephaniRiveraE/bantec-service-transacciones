@@ -1,0 +1,2 @@
+# Este archivo mantiene el directorio certs/ en Git sin exponer certificados sensibles
+# Los certificados reales (*.p12, *.crt, *.key) se generan en la VM de producción
