@@ -46,16 +46,10 @@ jobs:
       - name: Configurar kubectl
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
       
-      - name: Verificar o Crear Deployment
+      - name: Deploy a EKS
         run: |
-          if kubectl get deployment ${{ env.SERVICE_NAME }} -n ${{ env.NAMESPACE }} > /dev/null 2>&1; then
-            echo "✅ Deployment existe, actualizando imagen..."
-            kubectl set image deployment/${{ env.SERVICE_NAME }} \
-              ${{ env.SERVICE_NAME }}=${{ env.IMAGE }} \
-              -n ${{ env.NAMESPACE }}
-          else
-            echo "📦 Deployment no existe, creando..."
-            cat <<EOF | kubectl apply -f -
+          echo "📦 Desplegando manifest en EKS..."
+          cat <<EOF | kubectl apply -f -
           apiVersion: apps/v1
           kind: Deployment
           metadata:
@@ -109,6 +103,13 @@ jobs:
                             key: ${{ env.SECRET_KEY_PASS }}
                       - name: SPRING_JPA_HIBERNATE_DDL_AUTO
                         value: "update"
+                      # Variables de Integración con Switch Transaccional
+                      - name: APP_SWITCH_NETWORK_URL
+                        value: ${{ vars.SWITCH_API_URL }}
+                      - name: OAUTH_CLIENT_ID
+                        value: ${{ secrets.OAUTH_CLIENT_ID }}
+                      - name: OAUTH_CLIENT_SECRET
+                        value: ${{ secrets.OAUTH_CLIENT_SECRET }}
                     livenessProbe:
                       httpGet:
                         path: /actuator/health/liveness
@@ -139,7 +140,6 @@ jobs:
             selector:
               app: ${{ env.SERVICE_NAME }}
           EOF
-          fi
       
       - name: Esperar Rollout
         run: |
