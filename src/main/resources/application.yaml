@@ -44,11 +44,11 @@ app:
     cuentas-url: ${CUENTAS_URL:http://micro-cuentas:8081}
     clientes-url: ${CLIENTES_URL:http://micro-clientes:8080}
   switch:
-    network-url: ${APP_SWITCH_NETWORK_URL:https://gf0js7uezg.execute-api.us-east-2.amazonaws.com/dev}
+    network-url: ${APP_SWITCH_NETWORK_URL:http://34.16.106.7:8000}
     apikey: ${APP_SWITCH_APIKEY:BANTEC_SECRET_KEY_2025}
   security:
     oauth:
-      token-url: https://auth-banca-dev.auth.us-east-2.amazoncognito.com
+      token-url: ${OAUTH_TOKEN_URL:https://auth-banca-digiconecu-dev-lhd4go.auth.us-east-2.amazoncognito.com/oauth2/token}
       client-id: ${OAUTH_CLIENT_ID:7oj12jtu8d3keilv1e1gjkc8e4}
       client-secret: ${OAUTH_CLIENT_SECRET:16o9bdppi2qku69vuk7qdcim4fqrkmkggder3iq47p9cs29tqqoq}
       scope: https://switch-api.com/transfers.write
