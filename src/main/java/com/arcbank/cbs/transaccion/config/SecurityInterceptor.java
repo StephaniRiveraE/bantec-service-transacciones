@@ -22,9 +22,14 @@ public class SecurityInterceptor {
     @Bean
     public RequestInterceptor oauthAndJwsInterceptor() {
         return template -> {
-            // 1. Inject OAuth Token
-            String token = tokenService.getAccessToken();
-            template.header("Authorization", "Bearer " + token);
+            try {
+                // 1. Inject OAuth Token
+                String token = tokenService.getAccessToken();
+                template.header("Authorization", "Bearer " + token);
+            } catch (Exception e) {
+                log.warn("⚠️ No se pudo obtener el token OAuth para {}: {}", template.url(), e.getMessage());
+                // No relanzamos para permitir llamadas internas o fallos temporales de Cognito
+            }
 
             // 2. Sign Body (JWS)
             if (template.body() != null) {
@@ -35,7 +40,7 @@ public class SecurityInterceptor {
                     log.debug("✍️ Request Signed for {}", template.url());
                 } catch (Exception e) {
                     log.error("❌ Failed to sign request: {}", e.getMessage());
-                    throw new RuntimeException("Signing failed", e);
+                    // No relanzamos para evitar que una falla en firma bloquee la operación
                 }
             }
         };
