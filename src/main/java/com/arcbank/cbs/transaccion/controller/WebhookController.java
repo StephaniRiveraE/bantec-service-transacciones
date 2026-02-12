@@ -29,7 +29,7 @@ public class WebhookController {
         private final ObjectMapper mapper;
         private final com.arcbank.cbs.transaccion.service.JwsService jwsService;
 
-        @PostMapping("/api/core/transferencias/recepcion")
+        @PostMapping("/api/v2/switch/transfers")
         public ResponseEntity<?> recibirWebhookUnificado(
                         @org.springframework.web.bind.annotation.RequestHeader(value = "x-jws-signature", required = false) String jwsSignature,
                         @RequestBody String rawPayload) {

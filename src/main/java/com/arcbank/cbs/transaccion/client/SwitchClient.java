@@ -27,7 +27,7 @@ public interface SwitchClient {
         @GetMapping("/api/v2/transfers/health")
         Map<String, String> healthCheck();
 
-        @PostMapping("/api/v2/switch/transfers/return")
+        @PostMapping("/api/v2/switch/returns")
         SwitchTransferResponse solicitarDevolucion(@RequestBody SwitchRefundRequest request);
 
         @GetMapping("/api/v2/switch/transfers/{instructionId}")
@@ -37,10 +37,10 @@ public interface SwitchClient {
         @GetMapping("/api/v1/reference/iso20022/errors")
         List<Map<String, String>> obtenerMotivosDevolucion();
 
-        @PostMapping("/api/v2/switch/accounts/lookup")
+        @PostMapping("/api/v2/switch/account-lookup")
         com.arcbank.cbs.transaccion.dto.AccountLookupResponse lookupAccount(
                         @RequestBody com.arcbank.cbs.transaccion.dto.AccountLookupRequest request);
 
-        @PostMapping("/api/v2/switch/transfers/callback")
+        @PostMapping("/api/v1/transacciones/callback")
         Object enviarCallback(@RequestBody com.arcbank.cbs.transaccion.dto.StatusReportDTO callback);
 }

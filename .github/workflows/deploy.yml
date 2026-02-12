@@ -1,4 +1,4 @@
-name: "Deploy to EKS"
+name: "Deploy bantec-service-transacciones to EKS"
 
 on:
   push:
@@ -10,6 +10,11 @@ env:
   NAMESPACE: bantec
   ECR_REPO: bantec-service-transacciones
   SERVICE_NAME: service-transacciones
+  CONTAINER_PORT: "8080"
+  SECRET_NAME: "bantec-db-credentials"
+  SECRET_KEY_URL: "transacciones-url"
+  SECRET_KEY_USER: "username"
+  SECRET_KEY_PASS: "password"
 
 jobs:
   build-and-deploy:
@@ -33,6 +38,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          # El Dockerfile ya incluye el build de Maven (multistage), no es necesario compilar antes
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPO }}:$IMAGE_TAG .
           docker push $ECR_REGISTRY/${{ env.ECR_REPO }}:$IMAGE_TAG
           echo "IMAGE=$ECR_REGISTRY/${{ env.ECR_REPO }}:$IMAGE_TAG" >> $GITHUB_ENV
@@ -40,10 +46,120 @@ jobs:
       - name: Configurar kubectl
         run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
       
-      - name: Desplegar a EKS
+      - name: Deploy a EKS
         run: |
-          kubectl set image deployment/${{ env.SERVICE_NAME }} \
-            ${{ env.SERVICE_NAME }}=${{ env.IMAGE }} \
-            -n ${{ env.NAMESPACE }}
+          echo "📦 Desplegando manifest en EKS..."
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ env.SERVICE_NAME }}
+            namespace: ${{ env.NAMESPACE }}
+            labels:
+              app: ${{ env.SERVICE_NAME }}
+              bank: ${{ env.NAMESPACE }}
+          spec:
+            replicas: 1
+            strategy:
+              type: Recreate
+            selector:
+              matchLabels:
+                app: ${{ env.SERVICE_NAME }}
+            template:
+              metadata:
+                labels:
+                  app: ${{ env.SERVICE_NAME }}
+                  bank: ${{ env.NAMESPACE }}
+              spec:
+                containers:
+                  - name: ${{ env.SERVICE_NAME }}
+                    image: ${{ env.IMAGE }}
+                    ports:
+                      - containerPort: ${{ env.CONTAINER_PORT }}
+                    resources:
+                      requests:
+                        memory: "512Mi"
+                        cpu: "250m"
+                      limits:
+                        memory: "1Gi"
+                        cpu: "500m"
+                    env:
+                      - name: SPRING_PROFILES_ACTIVE
+                        value: "prod"
+                      - name: SPRING_DATASOURCE_URL
+                        valueFrom:
+                          secretKeyRef:
+                            name: ${{ env.SECRET_NAME }}
+                            key: ${{ env.SECRET_KEY_URL }}
+                      - name: SPRING_DATASOURCE_USERNAME
+                        valueFrom:
+                          secretKeyRef:
+                            name: ${{ env.SECRET_NAME }}
+                            key: ${{ env.SECRET_KEY_USER }}
+                      - name: SPRING_DATASOURCE_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: ${{ env.SECRET_NAME }}
+                            key: ${{ env.SECRET_KEY_PASS }}
+                      - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+                        value: "update"
+                      # Variables de Integración con Switch Transaccional
+                      - name: APP_SWITCH_NETWORK_URL
+                        value: ${{ vars.SWITCH_API_URL }}
+                      - name: OAUTH_CLIENT_ID
+                        value: ${{ secrets.OAUTH_CLIENT_ID }}
+                      - name: OAUTH_CLIENT_SECRET
+                        value: ${{ secrets.OAUTH_CLIENT_SECRET }}
+                    livenessProbe:
+                      httpGet:
+                        path: /actuator/health/liveness
+                        port: ${{ env.CONTAINER_PORT }}
+                      initialDelaySeconds: 120
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 5
+                    readinessProbe:
+                      httpGet:
+                        path: /actuator/health/readiness
+                        port: ${{ env.CONTAINER_PORT }}
+                      initialDelaySeconds: 180
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 10
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: ${{ env.SERVICE_NAME }}
+            namespace: ${{ env.NAMESPACE }}
+          spec:
+            type: ClusterIP
+            ports:
+              - port: 80
+                targetPort: ${{ env.CONTAINER_PORT }}
+            selector:
+              app: ${{ env.SERVICE_NAME }}
+          EOF
+      
+      - name: Esperar Rollout
+        run: |
+          echo "⏳ Esperando que el deployment esté listo..."
           kubectl rollout status deployment/${{ env.SERVICE_NAME }} \
             -n ${{ env.NAMESPACE }} --timeout=300s
+          
+          echo "✅ Deploy completado!"
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.SERVICE_NAME }}
+
+      - name: Reporte de Error (si falla)
+        if: failure()
+        run: |
+          echo "❌ EL DESPLIEGUE FALLÓ - REPORTE DE ERRORES:"
+          echo "=========================================="
+          echo "1. ESTADO DE LOS PODS:"
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ env.SERVICE_NAME }} -o wide
+          echo ""
+          echo "2. EVENTOS RECIENTES:"
+          kubectl describe pod -n ${{ env.NAMESPACE }} -l app=${{ env.SERVICE_NAME }} | tail -20
+          echo ""
+          echo "3. LOGS DE APLICACIÓN:"
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=${{ env.SERVICE_NAME }} --tail=50
