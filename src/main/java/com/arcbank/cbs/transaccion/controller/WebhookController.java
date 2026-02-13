@@ -171,4 +171,33 @@ public class WebhookController {
                 String estado = transaccionService.consultarEstadoTransferencia(instructionId);
                 return ResponseEntity.ok(Map.of("estado", estado));
         }
+
+        /**
+         * Endpoint para recepción de devoluciones/reversiones del Switch (pacs.004).
+         * El Switch envía a: urlDestino + "/api/incoming/return"
+         */
+        @PostMapping("/api/incoming/return")
+        public ResponseEntity<?> recibirDevolucion(@RequestBody String rawPayload) {
+                log.info("📥 Devolución recibida vía /api/incoming/return");
+                try {
+                        SwitchRefundRequest refundRequest = mapper.readValue(rawPayload, SwitchRefundRequest.class);
+                        transaccionService.procesarDevolucionEntrante(refundRequest);
+                        return ResponseEntity.ok(Map.of("status", "ACK", "message", "Devolución procesada"));
+                } catch (Exception e) {
+                        log.error("❌ Error procesando devolución entrante: {}", e.getMessage());
+                        return ResponseEntity.status(422).body(Map.of("status", "NACK", "error", e.getMessage()));
+                }
+        }
+
+        /**
+         * Endpoint unificado alternativo (compatible con ArcBank urlDestino /recepcion).
+         * Delega al handler principal de webhooks.
+         */
+        @PostMapping("/api/core/transferencias/recepcion")
+        public ResponseEntity<?> recibirRecepcionUnificada(
+                        @org.springframework.web.bind.annotation.RequestHeader(value = "x-jws-signature", required = false) String jwsSignature,
+                        @RequestBody String rawPayload) {
+                log.info("📥 Webhook recibido vía /api/core/transferencias/recepcion (compatible)");
+                return recibirWebhookUnificado(jwsSignature, rawPayload);
+        }
 }
