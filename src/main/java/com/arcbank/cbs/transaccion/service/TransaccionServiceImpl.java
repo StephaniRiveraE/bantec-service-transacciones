@@ -228,7 +228,17 @@ public class TransaccionServiceImpl implements TransaccionService {
                         String ultimoEstado = "PENDING";
                         String motivoFallo = "";
 
-                        for (int i = 0; i < 10; i++) {
+                        // --- FIX: Verificar si el POST ya retornó estado final ---
+                        if (switchResp.getData() != null) {
+                            String estadoInicial = switchResp.getData().getEstado();
+                            if ("COMPLETED".equalsIgnoreCase(estadoInicial)
+                                    || "EXITOSA".equalsIgnoreCase(estadoInicial)) {
+                                log.info("Switch retornó COMPLETED en respuesta inicial. Omitiendo polling.");
+                                confirmado = true;
+                            }
+                        }
+
+                        for (int i = 0; i < 10 && !confirmado; i++) {
                             try {
                                 Thread.sleep(1500);
                             } catch (InterruptedException ie) {
