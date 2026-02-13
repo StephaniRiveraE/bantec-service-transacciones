@@ -41,8 +41,8 @@ public interface SwitchClient {
         SwitchTransferResponse consultarEstadoTransferencia(
                         @org.springframework.web.bind.annotation.PathVariable("instructionId") String instructionId);
 
-        // @GetMapping("/api/v1/reference/iso20022/errors")
-        // List<Map<String, String>> obtenerMotivosDevolucion();
+        @GetMapping("/api/v1/reference/iso20022/errors")
+        List<Map<String, String>> obtenerMotivosDevolucion();
 
         @PostMapping("/api/v2/switch/account-lookup")
         com.arcbank.cbs.transaccion.dto.AccountLookupResponse lookupAccount(
