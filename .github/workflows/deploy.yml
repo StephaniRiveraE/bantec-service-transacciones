@@ -103,9 +103,6 @@ jobs:
                             key: ${{ env.SECRET_KEY_PASS }}
                       - name: SPRING_JPA_HIBERNATE_DDL_AUTO
                         value: "update"
-                      # Variables de Integración con Switch Transaccional
-                      - name: APP_SWITCH_NETWORK_URL
-                        value: ${{ vars.SWITCH_API_URL }}
                       - name: OAUTH_CLIENT_ID
                         value: ${{ secrets.OAUTH_CLIENT_ID }}
                       - name: OAUTH_CLIENT_SECRET
