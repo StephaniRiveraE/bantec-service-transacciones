@@ -189,15 +189,4 @@ public class WebhookController {
                 }
         }
 
-        /**
-         * Endpoint unificado alternativo (compatible con ArcBank urlDestino /recepcion).
-         * Delega al handler principal de webhooks.
-         */
-        @PostMapping("/api/core/transferencias/recepcion")
-        public ResponseEntity<?> recibirRecepcionUnificada(
-                        @org.springframework.web.bind.annotation.RequestHeader(value = "x-jws-signature", required = false) String jwsSignature,
-                        @RequestBody String rawPayload) {
-                log.info("📥 Webhook recibido vía /api/core/transferencias/recepcion (compatible)");
-                return recibirWebhookUnificado(jwsSignature, rawPayload);
-        }
 }
