@@ -32,11 +32,19 @@ public class BancosController {
     @GetMapping
     @Operation(summary = "Listar bancos disponibles para transferencias interbancarias")
     public ResponseEntity<?> listarBancos() {
-        log.info("[BANTEC] Retornando lista de bancos hardcodeada (Switch no provee endpoint)");
-
-        return ResponseEntity.ok(Map.of(
-                "bancos", BANCOS_DISPONIBLES,
-                "total", BANCOS_DISPONIBLES.size()));
+        try {
+            log.info("[BANTEC] Consultando lista de bancos al Switch via APIM");
+            List<Map<String, Object>> bancos = switchClient.obtenerBancos();
+            return ResponseEntity.ok(Map.of(
+                    "bancos", bancos,
+                    "total", bancos.size()));
+        } catch (Exception e) {
+            log.error("[BANTEC] Error consultando bancos: {}", e.getMessage());
+            return ResponseEntity.ok(Map.of(
+                    "bancos", BANCOS_DISPONIBLES,
+                    "total", BANCOS_DISPONIBLES.size(),
+                    "note", "Lista de respaldo por fallo en Switch"));
+        }
     }
 
     @GetMapping("/health")
