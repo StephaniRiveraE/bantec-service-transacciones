@@ -46,7 +46,10 @@ public class TokenService {
 
             Map<String, String> formParams = new HashMap<>();
             formParams.put("grant_type", "client_credentials");
-            formParams.put("scope", scope);
+            // Asegurar que el scope se envíe correctamente según lo esperado por Cognito
+            if (scope != null && !scope.isBlank()) {
+                formParams.put("scope", scope);
+            }
 
             Map<String, Object> response = authClient.getToken(authHeader, formParams);
 
