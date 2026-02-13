@@ -110,9 +110,12 @@ public class MTLSConfig {
                 .loadKeyMaterial(keyStore, keystorePassword.toCharArray());
 
         if (trustStoreLoaded) {
-            sslContextBuilder.loadTrustMaterial(trustStore, null);
+            // Cargar el truststore personalizado pero PERMITIR cualquier certificado (para
+            // aceptar AWS APIM y otros)
+            sslContextBuilder.loadTrustMaterial(trustStore, (chain, authType) -> true);
+            log.warn("⚠️ Truststore cargado pero se ha forzado TRUST ALL para compatibilidad con AWS.");
         } else {
-
+            // Si no hay truststore, confiar en todo
             sslContextBuilder.loadTrustMaterial(null, (chain, authType) -> true);
             log.warn("⚠️ MODO_INSECURO: Se ha desactivado la verificación SSL para avanzar en pruebas.");
         }
