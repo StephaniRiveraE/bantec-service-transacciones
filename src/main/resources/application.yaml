@@ -48,7 +48,7 @@ app:
     apikey: ${APP_SWITCH_APIKEY:BANTEC_SECRET_KEY_2025}
   security:
     oauth:
-      token-url: ${OAUTH_TOKEN_URL:https://auth-banca-digiconecu-dev-lhd4go.auth.us-east-2.amazoncognito.com/oauth2/token}
+      token-url: ${OAUTH_TOKEN_URL:https://auth-banca-digiconecu-dev-lhd4go.auth.us-east-2.amazoncognito.com}
       client-id: ${OAUTH_CLIENT_ID:7oj12jtu8d3keilv1e1gjkc8e4}
       client-secret: ${OAUTH_CLIENT_SECRET:16o9bdppi2qku69vuk7qdcim4fqrkmkggder3iq47p9cs29tqqoq}
       scope: https://switch-api.com/transfers.write

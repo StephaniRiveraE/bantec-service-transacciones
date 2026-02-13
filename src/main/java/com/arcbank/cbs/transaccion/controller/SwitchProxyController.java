@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/v2/switch")
 @RequiredArgsConstructor
@@ -22,5 +23,12 @@ public class SwitchProxyController {
         // Delegamos la consulta al Feign Client que ya tiene mTLS configurado
         SwitchTransferResponse response = switchClient.consultarEstadoTransferencia(instructionId);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/account-lookup")
+    @Operation(summary = "Validar cuenta externa en Switch (Proxy)")
+    public ResponseEntity<com.arcbank.cbs.transaccion.dto.AccountLookupResponse> lookupAccount(
+            @RequestBody com.arcbank.cbs.transaccion.dto.AccountLookupRequest request) {
+        return ResponseEntity.ok(switchClient.lookupAccount(request));
     }
 }
