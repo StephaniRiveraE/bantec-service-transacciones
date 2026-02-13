@@ -95,9 +95,14 @@ public class WebhookController {
                         if ("acmt.023.001.02".equals(namespace)) {
                                 log.info("🔍 Detectado: Solicitud de Validación de Cuenta (acmt.023)");
                                 try {
-                                        @SuppressWarnings("unchecked")
-                                        Map<String, Object> creditor = (Map<String, Object>) body.get("creditor");
-                                        String accountId = (String) creditor.get("accountId");
+                                        // El Switch envía body.targetAccountNumber
+                                        String accountId = (String) body.get("targetAccountNumber");
+                                        // Fallback: creditor.accountId (compatibilidad)
+                                        if (accountId == null && body.get("creditor") != null) {
+                                                @SuppressWarnings("unchecked")
+                                                Map<String, Object> creditor = (Map<String, Object>) body.get("creditor");
+                                                accountId = (String) creditor.get("accountId");
+                                        }
 
                                         com.arcbank.cbs.transaccion.dto.AccountLookupResponse response = transaccionService
                                                         .validarCuentaLocal(accountId);
