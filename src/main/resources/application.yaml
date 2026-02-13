@@ -44,7 +44,7 @@ app:
     cuentas-url: ${CUENTAS_URL:http://micro-cuentas:8081}
     clientes-url: ${CLIENTES_URL:http://micro-clientes:8080}
   switch:
-    network-url: ${APP_SWITCH_NETWORK_URL:http://34.16.106.7:8000}
+    network-url: ${APP_SWITCH_NETWORK_URL:https://gf0js7uezg.execute-api.us-east-2.amazonaws.com/dev}
     apikey: ${APP_SWITCH_APIKEY:BANTEC_SECRET_KEY_2025}
   security:
     oauth:

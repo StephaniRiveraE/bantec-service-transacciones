@@ -21,21 +21,28 @@ public interface SwitchClient {
         @PostMapping("/api/v2/switch/transfers")
         SwitchTransferResponse enviarTransferencia(@RequestBody SwitchTransferRequest request);
 
-        @GetMapping("/api/v1/red/bancos")
+        @GetMapping("/api/v1/instituciones")
         List<Map<String, Object>> obtenerBancos();
 
-        @GetMapping("/api/v2/transfers/health")
+        @GetMapping("/api/v2/switch/health")
         Map<String, String> healthCheck();
 
         @PostMapping("/api/v2/switch/returns")
         SwitchTransferResponse solicitarDevolucion(@RequestBody SwitchRefundRequest request);
 
+        @PostMapping("/api/v1/funding/recharge")
+        Map<String, Object> realizarFondeo(@RequestBody Map<String, Object> request);
+
+        @GetMapping("/api/v1/funding/available/{bic}/{monto}")
+        boolean verificarFondos(@org.springframework.web.bind.annotation.PathVariable("bic") String bic,
+                        @org.springframework.web.bind.annotation.PathVariable("monto") java.math.BigDecimal monto);
+
         @GetMapping("/api/v2/switch/transfers/{instructionId}")
         SwitchTransferResponse consultarEstadoTransferencia(
                         @org.springframework.web.bind.annotation.PathVariable("instructionId") String instructionId);
 
-        @GetMapping("/api/v1/reference/iso20022/errors")
-        List<Map<String, String>> obtenerMotivosDevolucion();
+        // @GetMapping("/api/v1/reference/iso20022/errors")
+        // List<Map<String, String>> obtenerMotivosDevolucion();
 
         @PostMapping("/api/v2/switch/account-lookup")
         com.arcbank.cbs.transaccion.dto.AccountLookupResponse lookupAccount(

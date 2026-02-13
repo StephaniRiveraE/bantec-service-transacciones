@@ -22,6 +22,9 @@ public class SecurityInterceptor {
     @Bean
     public RequestInterceptor oauthAndJwsInterceptor() {
         return template -> {
+            // 0. Add Trace-ID for Observability
+            template.header("X-Trace-Id", java.util.UUID.randomUUID().toString());
+
             try {
                 // 1. Inject OAuth Token
                 String token = tokenService.getAccessToken();
